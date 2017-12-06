@@ -2,12 +2,12 @@
 
 A crosswords generator written in JavaScript
 
-# Run
+## Run
 
 node version >= 6.0
 
 `node core.js`
 
-#License
+## License
 
 MIT
