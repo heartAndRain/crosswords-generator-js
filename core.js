@@ -9,13 +9,14 @@ function generateWordsMap(wordsList, maxWordLength) {
 
     if (originWord.length > maxWordLength || /[-_\\\.]/.test(originWord)) return;
 
-    const splitedWords = originWord.replace(/\s+/g, '').split('');
+    const formattedOriginWord = originWord.replace(/\s+/g, '');
+    const splitedWords = formattedOriginWord.split('');
 
 
     splitedWords.forEach(splitWord => {
       
       const lib = map.get(splitWord);
-      map.set(splitWord, insertIntoLib(originWord, lib));
+      map.set(splitWord, insertIntoLib(formattedOriginWord, lib));
       
     });
 
@@ -31,19 +32,21 @@ function insertIntoLib(word, lib) {
 
   if (cpLib.filter(w => w === word).length) return cpLib;
 
-  let pointer = 0;
-  while(pointer < cpLib.length) {
-    if (word.length < cpLib[pointer].length) {
-      pointer++;
-    } else {
-      cpLib.splice(pointer, 0, word);
-      break;
-    }
-  }
+  // let pointer = 0;
+  // while(pointer < cpLib.length) {
+  //   if (word.length < cpLib[pointer].length) {
+  //     pointer++;
+  //   } else {
+  //     cpLib.splice(pointer, 0, word);
+  //     break;
+  //   }
+  // }
 
-  if (pointer === cpLib.length) {
-    cpLib.push(word);
-  }
+  // if (pointer === cpLib.length) {
+  //   cpLib.push(word);
+  // }
+
+  cpLib.push(word);
 
   return cpLib;
 
@@ -65,7 +68,7 @@ function getCellByPosition(matrix, position) {
 
   const { x, y } = position;
 
-  if (y < matrix.length && x < matrix[0].length) {
+  if (y >= 0 && y < matrix.length && x >= 0 && x < matrix[0].length) {
     return matrix[y][x];
   } else {
     return null;
@@ -234,18 +237,18 @@ function getLastElement(list) {
 }
 
 
-function fillFromStartPosition(matrix, wordsMap, startPosition) {
+function fillFromStartPosition(matrix, wordsMap, allWordsUsedSet, initPosition) {
 
-  let position = startPosition;
+  let position = initPosition;
   let cell = getCellByPosition(matrix, position);
   const startWords = getLastElement(cell.words);
   const direction = getLastElement(cell.wordsDirection);
 
   let newMatrix = deepClone(matrix);
 
-  console.log(startWords)
+  // console.log(startWords)
 
-  const usedWordsSet = new Set();
+  const usedWordsMap = new Map();
 
   while(cell && getLastElement(cell.words) === startWords) {
     const { x, y } = position;
@@ -256,15 +259,16 @@ function fillFromStartPosition(matrix, wordsMap, startPosition) {
 
     const lib = wordsMap.get(commonWord);
     
-    if (!lib) throw new Error(`There is no lib for word "${word}"`);
+    if (!lib) throw new Error(`There is no lib for word "${commonWord}"`);
 
-    
-
-    for (let libWords of lib) {
+    for (const libWords of lib) {
 
       let isFillSuccess = false;
 
-      if (libWords !== startWords && !usedWordsSet.has(libWords)) {
+      // console.log(libWords)
+      if (allWordsUsedSet.has(libWords) || usedWordsMap.has(libWords)) continue;
+
+      if (libWords !== startWords && !usedWordsMap.has(libWords)) {
 
         // the words may be "TAA", thus the indexes of "A" is [1,2]
         const indexes = indexOfAll(libWords.split(''), commonWord);
@@ -281,7 +285,10 @@ function fillFromStartPosition(matrix, wordsMap, startPosition) {
             if (filledMatrix) {
               isFillSuccess = true;
               newMatrix = filledMatrix;
-              usedWordsSet.add(libWords);
+
+              const position = { x: startPosition.x, y: startPosition.y }
+              usedWordsMap.set(libWords, position);
+              
               break;
             }
             
@@ -302,9 +309,9 @@ function fillFromStartPosition(matrix, wordsMap, startPosition) {
 
     // next words
     if (direction === 'row') {
-      position = { x: x + 1, y };
+      position = { x: x + 2, y };
     } else if (direction === 'col') {
-      position = { x, y: y + 1 };
+      position = { x, y: y + 2 };
     } else {
       throw new Error('invalid cell direction');
     }
@@ -312,8 +319,16 @@ function fillFromStartPosition(matrix, wordsMap, startPosition) {
     cell = getCellByPosition(matrix, position);
   }
 
+  const usedWords = [];
+  
+  for(let [words, position] of usedWordsMap) {
+    usedWords.push({words, position});
+  }
 
-  return newMatrix;
+  // console.log(usedWordsStack);
+
+
+  return { newMatrix, usedWords };
 
 }
 
@@ -383,8 +398,47 @@ function fillCell(matrix, position, word, words, direction) {
 
   if (typeof cell.isUsed === "undefined") throw new Error('isUsed is not existed');
 
-
+  // 不存在交叉词
   if (cell.isUsed && cell.value !== word) return false;
+
+  // 存在交叉词但方向一致，比如不允许 BAA 和 ALLOW 组合 成  BAALLOW
+  if (cell.value === word && (cell.wordsDirection[0] === direction || cell.wordsDirection[1] === direction) ) {
+    return false;
+  }
+
+  if (direction === 'row') {
+    // 上下存在无关词汇
+    
+    // up
+    const upPosition = { x, y: y -1 };
+    const upCell = getCellByPosition(matrix, upPosition);
+    if (!cell.isUsed && upCell && upCell.isUsed) {
+      return false;
+    }
+
+    // down
+    const downPosition = { x, y: y + 1 };
+    const downCell = getCellByPosition(matrix, downPosition);
+    if (!cell.isUsed && downCell && downCell.isUsed) {
+      return false;
+    }
+    
+  } else if (direction === 'col') {
+    // left
+    const leftPosition = { x: x - 1, y };
+    const leftCell = getCellByPosition(matrix, leftPosition);
+    if (!cell.isUsed && leftCell && leftCell.isUsed) {
+      return false;
+    }
+
+    // right
+    const rightPosition = { x: x + 1, y };
+    const rightCell = getCellByPosition(matrix, rightPosition);
+    if (!cell.isUsed && rightCell && rightCell.isUsed) {
+      return false;
+    }
+
+  }
 
   cell.value = word;
   cell.words.push(words);
@@ -404,7 +458,7 @@ function formatMatrixIntoUI(matrix) {
   console.log(text);
 }
 
-function init(matrix, wordsList, usedWordsStack) {
+function init(matrix, wordsList) {
 
   const maxWordsLength = Math.min(matrix.length, matrix[0].length);
 
@@ -428,33 +482,56 @@ function init(matrix, wordsList, usedWordsStack) {
 
   if (!startMatrix) throw new Error('init failed');
 
-  usedWordsStack.push(randomWords);
 
-  return { startMatrix, wordsMap, startPosition };
+  return { startMatrix, wordsMap, startPosition, startWords: randomWords };
 }
 
 function run() {
 
-  const MATRIX_LENGTH = 12;
+  const MATRIX_LENGTH = 8;
 
   const words = require('./words.json');
   const wordsList = words.data;
 
+  // const wordsList = ['BAA', 'SOLID', 'WIT', 'BUS', 'ALLOW', 'DOT'];
+  
+
   const initMatrix = generateMatrix(MATRIX_LENGTH,MATRIX_LENGTH);
 
-  const usedWordsStack = [];
+  
+  const allWordsUsedSet = new Set();
 
-  const { startMatrix, wordsMap, startPosition } = init(initMatrix, wordsList, usedWordsStack);
+  let usedWordsQueue = [];
+  
 
+  const { startMatrix, wordsMap, startPosition, startWords } = init(initMatrix, wordsList);
 
-  while(usedWordsStack.length !== 0) {
-    const usedWords = usedWordsStack.pop();
+  let matrix = startMatrix;
+  
+  allWordsUsedSet.add(startWords);
+  
+  usedWordsQueue.push({words: startWords, position: startPosition})
 
-    const newMatrix = fillFromStartPosition(startMatrix, wordsMap, startPosition);
-    formatMatrixIntoUI(newMatrix);
+  
+
+  while(usedWordsQueue.length !== 0) {
+
+    const { words, position } = usedWordsQueue.shift();
+    
+    const { newMatrix, usedWords: newUsedWords } = fillFromStartPosition(matrix, wordsMap, allWordsUsedSet, position);
+
+    usedWordsQueue = usedWordsQueue.concat(newUsedWords);
+    
+    newUsedWords.forEach(({words}) => allWordsUsedSet.add(words));
+    
+    matrix = newMatrix;
+    
+    
   }
 
+  formatMatrixIntoUI(matrix);
 
+  console.log(allWordsUsedSet)
 
 
   // console.log(JSON.stringify(startMatrix));
