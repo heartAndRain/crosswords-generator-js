@@ -309,9 +309,9 @@ function fillFromStartPosition(matrix, wordsMap, allWordsUsedSet, initPosition) 
 
     // next words
     if (direction === 'row') {
-      position = { x: x + 2, y };
+      position = { x: x + 1, y };
     } else if (direction === 'col') {
-      position = { x, y: y + 2 };
+      position = { x, y: y + 1 };
     } else {
       throw new Error('invalid cell direction');
     }
@@ -422,7 +422,14 @@ function fillCell(matrix, position, word, words, direction) {
     if (!cell.isUsed && downCell && downCell.isUsed) {
       return false;
     }
-    
+
+    // right
+    const rightPosition = { x: x + 1, y };
+    const rightCell = getCellByPosition(matrix, rightPosition);
+    if (!cell.isUsed && rightCell && rightCell.isUsed && rightCell.value !== word) {
+      return false;
+    }
+
   } else if (direction === 'col') {
     // left
     const leftPosition = { x: x - 1, y };
@@ -438,6 +445,12 @@ function fillCell(matrix, position, word, words, direction) {
       return false;
     }
 
+    // down
+    const downPosition = { x, y: y + 1 };
+    const downCell = getCellByPosition(matrix, downPosition);
+    if (!cell.isUsed && downCell && downCell.isUsed && downCell.value !== word) {
+      return false;
+    }
   }
 
   cell.value = word;
@@ -451,7 +464,7 @@ function fillCell(matrix, position, word, words, direction) {
 function formatMatrixIntoUI(matrix) {
   let text = '';
   for (row of matrix) {
-    let rowString = row.reduce((pre, cur) => `${pre}${cur.value === '' ? '+' : cur.value} `, '');
+    let rowString = row.reduce((pre, cur) => `${pre}${cur.value === '' ? ' ' : cur.value} `, '');
     text += (rowString + '\n');
   }
 
@@ -488,7 +501,7 @@ function init(matrix, wordsList) {
 
 function run() {
 
-  const MATRIX_LENGTH = 8;
+  const MATRIX_LENGTH = 12;
 
   const words = require('./words.json');
   const wordsList = words.data;
@@ -531,16 +544,8 @@ function run() {
 
   formatMatrixIntoUI(matrix);
 
-  console.log(allWordsUsedSet)
+  console.log(allWordsUsedSet);
 
-
-  // console.log(JSON.stringify(startMatrix));
-  // formatMatrixIntoUI(startMatrix);
-
-
-  
-  // console.log(randomKey, '\n', wordsMap);
-  // console.log(startMatrix, usedWordsStack);
 }
 
 run();
