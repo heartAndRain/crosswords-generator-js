@@ -236,6 +236,10 @@ function getLastElement(list) {
   return list.concat().pop();
 }
 
+function isArrayEqual(arr1, arr2) {
+  return JSON.stringify(arr1) === JSON.stringify(arr2);
+}
+
 
 function fillFromStartPosition(matrix, wordsMap, allWordsUsedSet, initPosition) {
 
@@ -345,8 +349,6 @@ function fillMatrix(matrix, startPosition, words) {
   // 先尝试横着填
   if (availableX) {
 
-    // console.log(words.length > (maxX - startX));
-
     for(let x = startX, wIndex = 0; x < maxX && wIndex < words.length; x++, wIndex++ ) {
       
       const isFillSuccess = fillCell(newMatrix, {x, y: startY}, words[wIndex], words, 'row');
@@ -412,14 +414,14 @@ function fillCell(matrix, position, word, words, direction) {
     // up
     const upPosition = { x, y: y -1 };
     const upCell = getCellByPosition(matrix, upPosition);
-    if (!cell.isUsed && upCell && upCell.isUsed) {
+    if (!cell.isUsed && upCell && upCell.isUsed && !isArrayEqual(upCell.words, cell.words)) {
       return false;
     }
 
     // down
     const downPosition = { x, y: y + 1 };
     const downCell = getCellByPosition(matrix, downPosition);
-    if (!cell.isUsed && downCell && downCell.isUsed) {
+    if (!cell.isUsed && downCell && downCell.isUsed && !isArrayEqual(downCell.words, cell.words)) {
       return false;
     }
 
@@ -434,14 +436,14 @@ function fillCell(matrix, position, word, words, direction) {
     // left
     const leftPosition = { x: x - 1, y };
     const leftCell = getCellByPosition(matrix, leftPosition);
-    if (!cell.isUsed && leftCell && leftCell.isUsed) {
+    if (!cell.isUsed && leftCell && leftCell.isUsed && !isArrayEqual(leftCell.words, cell.words)) {
       return false;
     }
 
     // right
     const rightPosition = { x: x + 1, y };
     const rightCell = getCellByPosition(matrix, rightPosition);
-    if (!cell.isUsed && rightCell && rightCell.isUsed) {
+    if (!cell.isUsed && rightCell && rightCell.isUsed && !isArrayEqual(rightCell.words, cell.words)) {
       return false;
     }
 
@@ -507,6 +509,10 @@ function run() {
   const wordsList = words.data;
 
   // const wordsList = ['BAA', 'SOLID', 'WIT', 'BUS', 'ALLOW', 'DOT'];
+
+//   const wordsList = ['saffron', 'pumpernickel', 'leaven', 'coda', 'paladin', 'syncopation', 'albatross',
+//   'harp', 'piston', 'caramel', 'coral', 'dawn', 'pitch', 'fjord', 'lip', 'lime', 'mist', 'plague', 'yarn', 'snicker'
+// ]
   
 
   const initMatrix = generateMatrix(MATRIX_LENGTH,MATRIX_LENGTH);
