@@ -6,7 +6,7 @@ A crosswords generator written in JavaScript
 
 node version >= 6.0
 
-`node core.js`
+`node index.js`
 
 ## Result
 

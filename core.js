@@ -473,11 +473,10 @@ function formatMatrixIntoUI(matrix) {
   console.log(text);
 }
 
-function init(matrix, wordsList) {
+function init(matrix, wordsMap) {
 
   const maxWordsLength = Math.min(matrix.length, matrix[0].length);
 
-  const wordsMap = generateWordsMap(wordsList, maxWordsLength);
   const wordsMapKeys = Array.from(wordsMap.keys());
 
   // init start words
@@ -498,32 +497,23 @@ function init(matrix, wordsList) {
   if (!startMatrix) throw new Error('init failed');
 
 
-  return { startMatrix, wordsMap, startPosition, startWords: randomWords };
+  return { startMatrix, startPosition, startWords: randomWords };
 }
 
-function run() {
+function run(wordsList, wordsMap, length, onFinish) {
 
-  const MATRIX_LENGTH = 12;
-
-  const words = require('./words.json');
-  const wordsList = words.data;
-
-  // const wordsList = ['BAA', 'SOLID', 'WIT', 'BUS', 'ALLOW', 'DOT'];
-
-//   const wordsList = ['saffron', 'pumpernickel', 'leaven', 'coda', 'paladin', 'syncopation', 'albatross',
-//   'harp', 'piston', 'caramel', 'coral', 'dawn', 'pitch', 'fjord', 'lip', 'lime', 'mist', 'plague', 'yarn', 'snicker'
-// ]
   
 
-  const initMatrix = generateMatrix(MATRIX_LENGTH,MATRIX_LENGTH);
+  const initMatrix = generateMatrix(length,length);
 
   
   const allWordsUsedSet = new Set();
 
   let usedWordsQueue = [];
   
+  
 
-  const { startMatrix, wordsMap, startPosition, startWords } = init(initMatrix, wordsList);
+  const { startMatrix, startPosition, startWords } = init(initMatrix, wordsMap);
 
   let matrix = startMatrix;
   
@@ -548,10 +538,11 @@ function run() {
     
   }
 
-  formatMatrixIntoUI(matrix);
-
-  console.log(allWordsUsedSet);
-
+  onFinish && onFinish(matrix, allWordsUsedSet)
 }
 
-run();
+module.exports = {
+  run,
+  generateWordsMap,
+  formatMatrixIntoUI,
+}
