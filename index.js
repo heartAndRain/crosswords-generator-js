@@ -9,5 +9,5 @@ const wordsMap = generateWordsMap(wordsList, MATRIX_LENGTH);
 
 run(wordsList, wordsMap, MATRIX_LENGTH, (matrix, wordsSet) => {
   formatMatrixIntoUI(matrix);
-  console.log(allWordsUsedSet);
+  console.log(wordsSet);
 });
