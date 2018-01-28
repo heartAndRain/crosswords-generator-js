@@ -237,7 +237,7 @@ function getLastElement(list) {
 }
 
 function isArrayEqual(arr1, arr2) {
-  return JSON.stringify(arr1) === JSON.stringify(arr2);
+  return JSON.stringify(arr1) === JSON.stringify(arr2) || JSON.stringify(arr1.concat().reverse()) === JSON.stringify(arr2);
 }
 
 
@@ -350,8 +350,9 @@ function fillMatrix(matrix, startPosition, words) {
   if (availableX) {
 
     for(let x = startX, wIndex = 0; x < maxX && wIndex < words.length; x++, wIndex++ ) {
-      
-      const isFillSuccess = fillCell(newMatrix, {x, y: startY}, words[wIndex], words, 'row');
+      const isStart = x === startX;
+      const isEnd = x === maxX - 1 || wIndex === words.length - 1;
+      const isFillSuccess = fillCell(newMatrix, {x, y: startY}, words[wIndex], words, 'row', isStart, isEnd);
   
       if (!isFillSuccess) {
         rowFillSuccess = false;
@@ -372,8 +373,9 @@ function fillMatrix(matrix, startPosition, words) {
   if (availableY && !rowFillSuccess) {
 
     for(let y = startY, wIndex = 0; y < maxY && wIndex < words.length; y++, wIndex++ ) {
-      
-      const isFillSuccess = fillCell(newMatrix, {x: startX, y}, words[wIndex], words, 'col');
+      const isStart = y === startY;
+      const isEnd = y === maxY - 1 || wIndex === words.length - 1;
+      const isFillSuccess = fillCell(newMatrix, {x: startX, y}, words[wIndex], words, 'col', isStart, isEnd);
   
       if (!isFillSuccess) {
         colFillSuccess = false;
@@ -393,7 +395,7 @@ function fillMatrix(matrix, startPosition, words) {
 }
 
 
-function fillCell(matrix, position, word, words, direction) {
+function fillCell(matrix, position, word, words, direction, isStartCell = false, isEndCell = false) {
   const { x, y } = position;
 
   const cell = matrix[y][x];
@@ -407,6 +409,7 @@ function fillCell(matrix, position, word, words, direction) {
   if (cell.value === word && (cell.wordsDirection[0] === direction || cell.wordsDirection[1] === direction) ) {
     return false;
   }
+  // console.log(words, word, isStartCell, isEndCell);
 
   if (direction === 'row') {
     // 上下存在无关词汇
@@ -428,10 +431,22 @@ function fillCell(matrix, position, word, words, direction) {
     // right
     const rightPosition = { x: x + 1, y };
     const rightCell = getCellByPosition(matrix, rightPosition);
+    if (isEndCell && rightCell && rightCell.isUsed) {
+      return false;
+    }
     if (!cell.isUsed && rightCell && rightCell.isUsed && rightCell.value !== word) {
       return false;
     }
 
+    // left
+    const leftPosition = { x: x - 1, y};
+    const leftCell = getCellByPosition(matrix, leftPosition);
+    // console.log(leftCell.words, word, words);
+    if (isStartCell && leftCell && leftCell.isUsed) {
+      // console.log(leftCell.words, word, words);
+      return false
+    }
+    
   } else if (direction === 'col') {
     // left
     const leftPosition = { x: x - 1, y };
@@ -450,7 +465,17 @@ function fillCell(matrix, position, word, words, direction) {
     // down
     const downPosition = { x, y: y + 1 };
     const downCell = getCellByPosition(matrix, downPosition);
+    if (isEndCell && downCell && downCell.isUsed) {
+      return false;
+    }
     if (!cell.isUsed && downCell && downCell.isUsed && downCell.value !== word) {
+      return false;
+    }
+
+    // up
+    const upPosition = { x, y: y - 1};
+    const upCell = getCellByPosition(matrix, upPosition);
+    if (isStartCell && upCell && upCell.isUsed) {
       return false;
     }
   }

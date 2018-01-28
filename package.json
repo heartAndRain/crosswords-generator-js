@@ -1,0 +1,22 @@
+{
+  "name": "crosswords-generator",
+  "version": "0.0.2",
+  "description": "crosswords generator",
+  "main": "core.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heartAndRain/crosswords-generator-js.git"
+  },
+  "keywords": [
+    "crosswords"
+  ],
+  "author": "xinyu lee",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/heartAndRain/crosswords-generator-js/issues"
+  },
+  "homepage": "https://github.com/heartAndRain/crosswords-generator-js#readme"
+}
