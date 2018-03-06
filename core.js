@@ -32,24 +32,20 @@ function insertIntoLib(word, lib) {
 
   if (cpLib.filter(w => w === word).length) return cpLib;
 
-  // let pointer = 0;
-  // while(pointer < cpLib.length) {
-  //   if (word.length < cpLib[pointer].length) {
-  //     pointer++;
-  //   } else {
-  //     cpLib.splice(pointer, 0, word);
-  //     break;
-  //   }
-  // }
-
-  // if (pointer === cpLib.length) {
-  //   cpLib.push(word);
-  // }
-
   cpLib.push(word);
 
-  return cpLib;
+  return shuffle(cpLib);
+}
 
+function shuffle(deck) {
+  let randomizedDeck = [];
+  let array = deck.slice();
+  while (array.length !== 0) {
+  	let rIndex = Math.floor(array.length * Math.random());
+    randomizedDeck.push(array[rIndex]);
+    array.splice(rIndex, 1)
+  }
+  return randomizedDeck;
 }
 
 function getCell() {
